@@ -1,0 +1,19 @@
+{
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "rootDir": "src",
+
+    "declaration": true,
+    "declarationDir": "types",
+    "outDir": "types",
+    "emitDeclarationOnly": true,
+
+    "allowJs": true,
+    "checkJs": true,
+
+    "strict": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
+}

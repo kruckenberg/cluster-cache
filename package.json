@@ -1,0 +1,32 @@
+{
+  "name": "cluster-cache",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Share a centralized cache among clustered Node.js workers.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kruckenberg/cluster-cache.git"
+  },
+  "keywords": [
+    "cache",
+    "LRU",
+    "cluster"
+  ],
+  "author": "Nicholas Kruckenberg",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kruckenberg/cluster-cache/issues"
+  },
+  "homepage": "https://github.com/kruckenberg/cluster-cache#readme",
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "lru-cache": "^10.0.0",
+    "uuid": "^9.0.0"
+  }
+}
