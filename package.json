@@ -1,6 +1,6 @@
 {
   "name": "cluster-cache",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "Share a centralized cache among clustered Node.js workers.",
   "main": "src/index.js",
@@ -23,9 +23,13 @@
   },
   "homepage": "https://github.com/kruckenberg/cluster-cache#readme",
   "devDependencies": {
+    "@types/lodash": "^4.14.196",
+    "@types/uuid": "^9.0.2",
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@types/node": "^20.4.5",
+    "lodash": "^4.17.21",
     "lru-cache": "^10.0.0",
     "uuid": "^9.0.0"
   }

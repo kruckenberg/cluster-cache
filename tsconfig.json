@@ -5,11 +5,19 @@
 
     "declaration": true,
     "declarationDir": "types",
-    "outDir": "types",
+    "declarationMap": true,
     "emitDeclarationOnly": true,
+    "outDir": "types",
 
     "allowJs": true,
     "checkJs": true,
+
+    "target": "ES6",
+
+    "allowSyntheticDefaultImports": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
 
     "strict": true,
     "noImplicitThis": true,
