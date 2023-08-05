@@ -7,7 +7,7 @@ Instantiate and configure the cluster cache from the main process:
 ```javascript
 import cluster from 'node:cluster';
 import { availableParallelism } from 'node:os';
-import { ClusterCache } from '@kruckenberg/cluster-cache`;
+import { ClusterCache } from '@kruckenberg/cluster-cache';
 
 const numCPUs = availableParallelism();
 
