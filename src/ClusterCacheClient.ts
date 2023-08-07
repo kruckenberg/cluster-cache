@@ -16,7 +16,6 @@ export class ClusterCacheClient {
       ttl: 300_000, // 5 minutes, in milliseconds
       updateAgeOnGet: true,
     },
-    updateAgeOnGet: true,
   };
 
   readonly clientId!: string;
