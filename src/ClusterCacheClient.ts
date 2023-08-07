@@ -1,8 +1,9 @@
 import cluster from 'node:cluster';
-import console from 'node:console';
 import process from 'node:process';
 import merge from 'lodash/merge.js';
 import { v4 as generateId } from 'uuid';
+
+import * as Types from './types.js';
 
 export class ClusterCacheClient {
   static defaultConfig = {
@@ -18,12 +19,17 @@ export class ClusterCacheClient {
     updateAgeOnGet: true,
   };
 
-  /**
-   * @type {Record<string, (reply: import('./clusterCache.d.ts').ClusterCacheReply) => void>}
-   */
-  pendingRequests = {};
+  readonly clientId!: string;
 
-  sourceId = 'cluster-cache';
+  readonly config;
+
+  readonly logger: Console;
+
+  readonly namespace: string;
+
+  private readonly pendingRequests: Record<string, (reply: Types.Reply) => unknown> = {};
+
+  readonly sourceId = 'cluster-cache';
 
   constructor(config = {}) {
     if (cluster.isPrimary) {
@@ -37,19 +43,13 @@ export class ClusterCacheClient {
     this.logger = this.config.logger;
     this.namespace = this.config.namespace || this.clientId;
 
-    process.on('message', this.#handleReply);
+    process.on('message', this.handleReply);
   }
 
   /**
    * Adds override options if provided and permitted.
-   *
-   * @param {object}  args
-   * @param {string}  [args.key]
-   * @param {string}  args.namespace
-   * @param {unknown} [args.value]
-   * @param {import('./clusterCache.d.ts').OverridesUnion}  [overrides]
    */
-  #addRequestOptions = (args, overrides) => {
+  private addRequestOptions = (args: Types.CacheFnArguments, overrides: Types.OverridesUnion) => {
     if (overrides && !this.config.allowOverrides) {
       this.logger.warn(
         `Overrides not applied because cluster cache client not configured to allow per-operation overrides.`,
@@ -66,51 +66,40 @@ export class ClusterCacheClient {
 
   /**
    * Sends a request to clear a namespace from the cluster cache.
-   *
-   * @async
    */
   clear = async () => {
     const baseArgs = { namespace: this.namespace };
-    return this.#request('clear', baseArgs);
+    return this.request('clear', baseArgs);
   };
 
   /**
    * Sends a request to delete a namespaced key from the cluster cache.
-   *
-   * @async
-   * @param {string} key
    */
-  delete = async (key) => {
+  delete = async (key: string) => {
     const baseArgs = { key, namespace: this.namespace };
-    return this.#request('delete', baseArgs);
+    return this.request('delete', baseArgs);
   };
 
   /**
    * Sends a request to get a namespaced key from the cluster cache.
-   *
-   * @async
-   * @param {string} key
-   * @param {import('./clusterCache.d.ts').GetOverrides} [overrides]
    */
-  get = async (key, overrides) => {
+  get = async (key: string, overrides: Types.GetOverrides) => {
     const baseArgs = { key, namespace: this.namespace };
-    return this.#request('get', this.#addRequestOptions(baseArgs, overrides));
+    return this.request('get', this.addRequestOptions(baseArgs, overrides));
   };
 
   /**
    * Handles replies from cluster's primary process. If the reply matches a pending
    * request, resolve or reject the associated promise and remove it from the
    * pending request map.
-   *
-   * @param {import('./clusterCache.d.ts').ClusterCacheReply} reply
    */
-  #handleReply = (reply) => {
+  private handleReply = (reply: Types.Reply) => {
     const { clientId, requestId, sourceId } = reply;
 
     if (
       sourceId === this.sourceId &&
       clientId === this.clientId &&
-      this.pendingRequests[requestId]
+      Object.hasOwn(this.pendingRequests, requestId)
     ) {
       this.pendingRequests[requestId](reply);
       delete this.pendingRequests[requestId];
@@ -123,18 +112,8 @@ export class ClusterCacheClient {
    *
    * A configurable failsafe timeout is set, causing the request's promise to be rejected
    * if a response has not been received within the permitted time.
-   *
-   * @param {import('./clusterCache.d.ts').CacheMethods} operation
-   * @param {object}  args
-   * @param {string}  [args.key]
-   * @param {string}  args.namespace
-   * @param {unknown} [args.value]
-   * @param {object}  [args.options]
-   * @param {boolean} [args.options.allowStale]
-   * @param {number}  [args.options.ttl]
-   * @param {boolean} [args.options.updateAgeOnGet]
    */
-  #request = (operation, args) => {
+  private request = (operation: Types.Methods, args: Types.CacheFnArguments) => {
     return new Promise((resolve, reject) => {
       const requestId = generateId();
 
@@ -154,9 +133,9 @@ export class ClusterCacheClient {
         );
       }, this.config.requestTimeout);
 
-      this.pendingRequests[requestId] = (response) => {
+      this.pendingRequests[requestId] = (reply) => {
         clearTimeout(failsafeTimeout);
-        return response.error ? reject(response.error) : resolve(response.data);
+        return reply.error ? reject(reply.error) : resolve(reply.data);
       };
 
       if (process.send) {
@@ -167,14 +146,9 @@ export class ClusterCacheClient {
 
   /**
    * Sends a request to add a namespaced key-value pair to the cluster cache.
-   *
-   * @async
-   * @param {string} key
-   * @param {unknown} value
-   * @param {import('./clusterCache.d.ts').SetOverrides} [overrides]
    */
-  set = async (key, value, overrides) => {
+  set = async (key: string, value: NonNullable<unknown>, overrides: Types.SetOverrides) => {
     const baseArgs = { key, namespace: this.namespace, value };
-    return this.#request('set', this.#addRequestOptions(baseArgs, overrides));
+    return this.request('set', this.addRequestOptions(baseArgs, overrides));
   };
 }

@@ -2,10 +2,15 @@
   "name": "cluster-cache",
   "version": "0.1.0",
   "type": "module",
-  "description": "Share a centralized cache among clustered Node.js workers.",
-  "main": "src/index.js",
+  "description": "Share a centralized LRU cache among clustered Node.js workers.",
+  "engines": {
+    "node": ">=16.9.0"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "scripts": {
-    "test": ""
+    "build": "tsc -p ./",
+    "check": "tsc --pretty --noEmit"
   },
   "repository": {
     "type": "git",
